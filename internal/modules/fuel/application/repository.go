@@ -13,4 +13,7 @@ type Repository interface {
 	Create(ctx context.Context, in domain.FuelLog) (domain.FuelLog, error)
 	Update(ctx context.Context, id string, req UpdateFuelLogRequest) (domain.FuelLog, error)
 	Delete(ctx context.Context, id string) error
+
+	GetPublicByToken(ctx context.Context, token string) (domain.FuelLogPublicView, error)
+	ConfirmDispense(ctx context.Context, token string, req ConfirmFuelDispenseRequest) (int64, error)
 }

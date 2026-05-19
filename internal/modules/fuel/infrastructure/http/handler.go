@@ -1,6 +1,7 @@
 package http
 
 import (
+	"errors"
 	"net/http"
 
 	fuelapp "dispatch/internal/modules/fuel/application"
@@ -170,4 +171,60 @@ func (h *Handler) Delete(c *gin.Context) {
 		return
 	}
 	c.Status(http.StatusNoContent)
+}
+
+// GetPublicFuelLog godoc
+//
+//	@Summary		Get public fuel log by QR token
+//	@Description	Public, unauthenticated view returned when a fuel log QR code is scanned
+//	@Tags			Fuel
+//	@Param			token	path		string	true	"Fuel log public token"
+//	@Success		200		{object}	domain.FuelLogPublicView
+//	@Failure		404		{object}	map[string]any
+//	@Router			/public/fuel-logs/{token} [get]
+func (h *Handler) GetPublic(c *gin.Context) {
+	token := c.Param("token")
+	view, err := h.svc.GetPublic(c.Request.Context(), token)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"message": "fuel log not found"})
+		return
+	}
+	c.JSON(http.StatusOK, view)
+}
+
+// ConfirmPublicFuelLog godoc
+//
+//	@Summary		Confirm fuel dispense from the QR page
+//	@Description	Public endpoint used by the fuel station attendant to confirm fuel was dispensed
+//	@Tags			Fuel
+//	@Accept			json
+//	@Produce		json
+//	@Param			token	path		string							true	"Fuel log public token"
+//	@Param			payload	body		fuelapp.ConfirmFuelDispenseRequest	true	"Confirmation payload"
+//	@Success		200		{object}	domain.FuelLogPublicView
+//	@Failure		400		{object}	map[string]any
+//	@Failure		404		{object}	map[string]any
+//	@Failure		409		{object}	map[string]any
+//	@Router			/public/fuel-logs/{token}/confirm [post]
+func (h *Handler) ConfirmPublic(c *gin.Context) {
+	token := c.Param("token")
+	var req fuelapp.ConfirmFuelDispenseRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "attendant name is required"})
+		return
+	}
+
+	view, err := h.svc.ConfirmDispense(c.Request.Context(), token, req)
+	if err != nil {
+		switch {
+		case errors.Is(err, fuelapp.ErrFuelLogNotFound):
+			c.JSON(http.StatusNotFound, gin.H{"message": "fuel log not found"})
+		case errors.Is(err, fuelapp.ErrAlreadyConfirmed):
+			c.JSON(http.StatusConflict, gin.H{"message": "this fuel log has already been confirmed"})
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "failed to confirm fuel dispense"})
+		}
+		return
+	}
+	c.JSON(http.StatusOK, view)
 }
