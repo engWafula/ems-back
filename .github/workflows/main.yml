@@ -104,17 +104,14 @@ jobs:
             set -e
             cd /opt/ems-back
 
-            # Stop and remove existing containers for this project only (keeps volumes)
-            docker compose -p ems-back down
-
             # Pull latest images (app from registry; infra from Docker Hub)
             docker compose -p ems-back pull
 
-            # Bring up all services (--no-build: use pulled image, don't build)
-            docker compose -p ems-back up -d --no-build
+            # Recreate containers with new images; volumes are preserved (no down -v)
+            docker compose -p ems-back up -d --no-build --force-recreate
 
-            # Run migrations (includes default admin user from 000029)
-            docker compose -p ems-back run --rm --entrypoint ./migrate -e DATABASE_URL=postgres://postgres:postgres@postgres:5432/ems_db?sslmode=disable app -command up -dir migrations
+            # Run migrations (migrate service waits for postgres healthy via depends_on)
+            docker compose -p ems-back run --rm migrate
 
             # Clean up unused images
             docker image prune -f

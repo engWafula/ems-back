@@ -8,21 +8,74 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
-      - "5431:5432"
+      - '5431:5432'
     volumes:
       - ems_pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d ems_db"]
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d ems_db']
       interval: 10s
       timeout: 5s
       retries: 10
+
+  redis:
+    image: redis:8.6.1-alpine
+    container_name: ems-redis
+    restart: unless-stopped
+    command: ['redis-server', '--appendonly', 'yes']
+    ports:
+      - '6379:6379'
+    volumes:
+      - ems_redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  kafka:
+    image: confluentinc/cp-kafka:7.8.7
+    container_name: ems-kafka
+    restart: unless-stopped
+    hostname: kafka
+    ports:
+      - '9092:9092'
+      - '9094:9094'
+    environment:
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_NODE_ID: 1
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:29093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qkbiom
+      KAFKA_LISTENERS: INTERNAL://0.0.0.0:9092,EXTERNAL://0.0.0.0:9094,CONTROLLER://0.0.0.0:29093
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092,EXTERNAL://localhost:9094
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    healthcheck:
+      test: ['CMD-SHELL', 'cub kafka-ready -b localhost:9092 1 20']
+      interval: 15s
+      timeout: 10s
+      retries: 10
+
+  migrate:
+    image: joshmyles/ems-back:latest
+    network_mode: "service:postgres"
+    entrypoint: ['./migrate', '-command', 'up', '-dir', 'migrations']
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/ems_db?sslmode=disable
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   app:
     image: joshmyles/ems-back:latest
     container_name: ems-back
     restart: unless-stopped
     ports:
-      - "3005:8080"
+      - '3005:8080'
     environment:
       APP_ENV: production
       APP_PORT: 8080
@@ -31,12 +84,19 @@ services:
       DB_USER: postgres
       DB_PASSWORD: postgres
       DB_NAME: ems_db
-      REDIS_ADDR: disabled
-      KAFKA_BROKERS: disabled
+      REDIS_ADDR: redis:6379
+      KAFKA_BROKERS: kafka:9092
       JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
 
 volumes:
   ems_pgdata:
+    name: ems-back-pgdata
+  ems_redis_data:
+    name: ems-back-redis
