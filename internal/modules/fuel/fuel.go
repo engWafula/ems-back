@@ -8,10 +8,18 @@ import (
 	"dispatch/internal/shared/types"
 )
 
-func Register(deps types.ModuleDeps, rbacSvc *rbacapp.Service) {
-	repo := infrastructure.NewRepository(deps.DB)
-	service := fuelapp.NewService(repo, deps.Logger)
+// Register wires the fuel module. The authenticated CRUD routes are mounted on
+// secured, while the QR-scan verification routes are mounted on public (a
+// router group with no auth middleware) so fuel station attendants can use
+// them without an account.
+func Register(secured types.ModuleDeps, public types.ModuleDeps, rbacSvc *rbacapp.Service) {
+	repo := infrastructure.NewRepository(secured.DB)
+	service := fuelapp.NewService(repo, secured.Logger)
 	handler := http.NewHandler(service)
-	group := deps.Router.Group("/fuel")
+
+	group := secured.Router.Group("/fuel")
 	http.RegisterRoutes(group, handler, rbacSvc)
+
+	publicGroup := public.Router.Group("/public")
+	http.RegisterPublicRoutes(publicGroup, handler)
 }

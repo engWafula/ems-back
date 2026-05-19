@@ -107,7 +107,7 @@ func (h *Handler) Create(c *gin.Context) {
 	}
 	out, err := h.service.CreateAmbulance(c.Request.Context(), req)
 	if err != nil {
-		httpx.Error(c, http.StatusInternalServerError, err.Error())
+		httpx.DBError(c, err)
 		return
 	}
 	httpx.Created(c, out)
@@ -136,7 +136,7 @@ func (h *Handler) Update(c *gin.Context) {
 	}
 	out, err := h.service.UpdateAmbulance(c.Request.Context(), id, req)
 	if err != nil {
-		httpx.Error(c, http.StatusInternalServerError, err.Error())
+		httpx.DBError(c, err)
 		return
 	}
 	httpx.OK(c, out)
