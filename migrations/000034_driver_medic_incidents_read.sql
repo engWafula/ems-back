@@ -1,5 +1,5 @@
 -- ============================================
--- File: 000032_driver_medic_incidents_read.sql
+-- File: 000034_driver_medic_incidents_read.sql
 -- ============================================
 -- Grants the incidents.read permission to the DRIVER and MEDIC roles so that
 -- responders can list the incidents assigned to them. The incidents list
