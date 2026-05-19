@@ -44,11 +44,14 @@ func RegisterModules(deps types.ModuleDeps) {
 	usermod.Register(securedDeps, rbacSvc)
 	facilitiesmod.Register(securedDeps, rbacSvc)
 	fleetmod.Register(securedDeps, rbacSvc)
-	incidentmod.Register(securedDeps, rbacSvc)
+	// incidents is registered on the unsecured router so the public can report
+	// incidents (POST /incidents). Read/update routes re-apply AuthMiddleware
+	// inside the module's RegisterRoutes.
+	incidentmod.Register(deps, rbacSvc)
 	bloodmod.Register(securedDeps, rbacSvc)
 	tripsmod.Register(securedDeps, rbacSvc)
 	notifmod.Register(securedDeps, rbacSvc)
-	fuelmod.Register(securedDeps, rbacSvc)
+	fuelmod.Register(securedDeps, deps, rbacSvc)
 	availabilitymod.Register(securedDeps)
 	dispatchmod.Register(securedDeps)
 	devicetokens.Register(securedDeps)
