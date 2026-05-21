@@ -15,7 +15,10 @@ services:
       # data in the container layer, so --force-recreate wipes it every deploy.
       - ems_pgdata:/var/lib/postgresql
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U postgres -d ems_db']
+      # -h 127.0.0.1 forces TCP so pg_isready matches a `host` line in
+       # pg_hba.conf instead of the `local ... peer` line, which would
+       # otherwise fail because the healthcheck runs as root, not postgres.
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d ems_db -h 127.0.0.1']
       interval: 10s
       timeout: 5s
       retries: 10
