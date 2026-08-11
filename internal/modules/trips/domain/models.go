@@ -22,6 +22,12 @@ type Trip struct {
 	Notes                 *string    `json:"notes,omitempty"`
 	CreatedAt             time.Time  `json:"created_at"`
 	UpdatedAt             time.Time  `json:"updated_at"`
+
+	// Derived display names resolved via joins (omitted when blank).
+	IncidentNumber          string `json:"incident_number,omitempty"`
+	AmbulanceCode           string `json:"ambulance_code,omitempty"`
+	AmbulancePlate          string `json:"ambulance_plate,omitempty"`
+	DestinationFacilityName string `json:"destination_facility_name,omitempty"`
 }
 
 type TripEvent struct {
@@ -33,4 +39,7 @@ type TripEvent struct {
 	Longitude   *float64  `json:"longitude,omitempty"`
 	ActorUserID *string   `json:"actor_user_id,omitempty"`
 	Notes       *string   `json:"notes,omitempty"`
+
+	// Derived display name resolved via join (omitted when blank).
+	ActorUserName string `json:"actor_user_name,omitempty"`
 }

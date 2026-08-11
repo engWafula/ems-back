@@ -339,6 +339,174 @@ const docTemplate = `{
                 }
             }
         },
+        "/ambulances/{id}/driver": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Sets the active driver on an ambulance's crew assignment",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Fleet"
+                ],
+                "summary": "Assign driver to ambulance",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Ambulance ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Driver assignment payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dispatch_internal_modules_fleet_application.AssignDriverRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Clears the driver from the ambulance's active crew assignment",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Fleet"
+                ],
+                "summary": "Unassign driver from ambulance",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Ambulance ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/analytics/summary": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns system-wide reporting: incident totals, assignments, referrals, patient transfers, outcome distribution and district-level breakdowns. Optionally filtered by date range and district.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Analytics"
+                ],
+                "summary": "Consolidated analytics summary",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Start date YYYY-MM-DD",
+                        "name": "date_from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "End date YYYY-MM-DD",
+                        "name": "date_to",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "District ID",
+                        "name": "district_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/auth/login": {
             "post": {
                 "description": "Authenticates a user and returns access and refresh tokens",
@@ -2557,6 +2725,121 @@ const docTemplate = `{
                 }
             }
         },
+        "/facilities/{uid}/focal-person": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Assign or replace the focal person for a facility (one per facility)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Facilities"
+                ],
+                "summary": "Set facility focal person",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Facility UID",
+                        "name": "uid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Focal person payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dispatch_internal_modules_facilities_application.SetFocalPersonRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Remove the focal person from a facility",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Facilities"
+                ],
+                "summary": "Clear facility focal person",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Facility UID",
+                        "name": "uid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/fuel/logs": {
             "get": {
                 "security": [
@@ -2608,6 +2891,12 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Filter by ambulance_id (UUID)",
                         "name": "filter[ambulance_id]",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by user (UUID). Returns fuel logs for ambulances where this user is the active driver, plus logs they personally filled.",
+                        "name": "filter[user_id]",
                         "in": "query"
                     },
                     {
@@ -2940,14 +3229,32 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Facility ID",
-                        "name": "facility_id",
+                        "description": "Receiving (destination) facility ID",
+                        "name": "receiving_facility_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Referring (origin) facility ID",
+                        "name": "referring_facility_id",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "description": "Priority level ID",
                         "name": "priority_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Reported-at start date/time (YYYY-MM-DD or RFC3339)",
+                        "name": "date_from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Reported-at end date/time, exclusive (YYYY-MM-DD or RFC3339)",
+                        "name": "date_to",
                         "in": "query"
                     },
                     {
@@ -3143,6 +3450,157 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Hard-deletes an incident. Restricted to administrators (incidents.delete permission).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Incidents"
+                ],
+                "summary": "Delete incident",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Incident ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/incidents/{id}/feedback": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns receiving-facility feedback entries for an incident, newest first.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Incidents"
+                ],
+                "summary": "List incident feedback",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Incident ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Records receiving-facility outcome feedback for a transferred/received patient. Requires the incidents.feedback permission.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Incidents"
+                ],
+                "summary": "Submit incident feedback",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Incident ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Feedback payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dispatch_internal_modules_incidents_application.CreateIncidentFeedbackRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -3605,6 +4063,101 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/public/fuel-logs/{token}": {
+            "get": {
+                "description": "Public, unauthenticated view returned when a fuel log QR code is scanned",
+                "tags": [
+                    "Fuel"
+                ],
+                "summary": "Get public fuel log by QR token",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Fuel log public token",
+                        "name": "token",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dispatch_internal_modules_fuel_domain.FuelLogPublicView"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/public/fuel-logs/{token}/confirm": {
+            "post": {
+                "description": "Public endpoint used by the fuel station attendant to confirm fuel was dispensed",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Fuel"
+                ],
+                "summary": "Confirm fuel dispense from the QR page",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Fuel log public token",
+                        "name": "token",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Confirmation payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dispatch_internal_modules_fuel_application.ConfirmFuelDispenseRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dispatch_internal_modules_fuel_domain.FuelLogPublicView"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -4258,6 +4811,142 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/responders": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns paginated responders aggregated from ambulances, their active crew/driver, station and current dispatch load",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Responders"
+                ],
+                "summary": "List responders",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 20,
+                        "description": "Page size",
+                        "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search term (code, plate, driver name, district)",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "created_at",
+                            "plate_number",
+                            "status"
+                        ],
+                        "type": "string",
+                        "description": "Sort field",
+                        "name": "sort_by",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "ASC",
+                            "DESC"
+                        ],
+                        "type": "string",
+                        "description": "Sort order",
+                        "name": "sort_order",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by ambulance status",
+                        "name": "filter[status]",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by district id",
+                        "name": "filter[district_id]",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by ambulance category id",
+                        "name": "filter[category_id]",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/responders/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get a single responder by ambulance ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Responders"
+                ],
+                "summary": "Get responder",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Ambulance ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -6147,6 +6836,17 @@ const docTemplate = `{
                 }
             }
         },
+        "dispatch_internal_modules_facilities_application.SetFocalPersonRequest": {
+            "type": "object",
+            "required": [
+                "user_id"
+            ],
+            "properties": {
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
         "dispatch_internal_modules_facilities_application.UpdateFacilityRequest": {
             "type": "object",
             "properties": {
@@ -6160,6 +6860,17 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "subcounty_uid": {
+                    "type": "string"
+                }
+            }
+        },
+        "dispatch_internal_modules_fleet_application.AssignDriverRequest": {
+            "type": "object",
+            "required": [
+                "driver_user_id"
+            ],
+            "properties": {
+                "driver_user_id": {
                     "type": "string"
                 }
             }
@@ -6283,6 +6994,29 @@ const docTemplate = `{
                 }
             }
         },
+        "dispatch_internal_modules_fuel_application.ConfirmFuelDispenseRequest": {
+            "type": "object",
+            "required": [
+                "attendant_name"
+            ],
+            "properties": {
+                "approved": {
+                    "type": "boolean"
+                },
+                "attendant_name": {
+                    "type": "string"
+                },
+                "attendant_phone": {
+                    "type": "string"
+                },
+                "dispensed_at": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                }
+            }
+        },
         "dispatch_internal_modules_fuel_application.CreateFuelLogRequest": {
             "type": "object",
             "required": [
@@ -6313,6 +7047,10 @@ const docTemplate = `{
                 },
                 "station_name": {
                     "type": "string"
+                },
+                "unit_cost": {
+                    "type": "number",
+                    "minimum": 0
                 }
             }
         },
@@ -6339,6 +7077,24 @@ const docTemplate = `{
                 },
                 "station_name": {
                     "type": "string"
+                },
+                "unit_cost": {
+                    "type": "number",
+                    "minimum": 0
+                }
+            }
+        },
+        "dispatch_internal_modules_fuel_domain.CrewMember": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string"
                 }
             }
         },
@@ -6348,10 +7104,28 @@ const docTemplate = `{
                 "ambulance_id": {
                     "type": "string"
                 },
+                "attendant_name": {
+                    "type": "string"
+                },
+                "attendant_notes": {
+                    "type": "string"
+                },
+                "attendant_phone": {
+                    "type": "string"
+                },
+                "confirmed_at": {
+                    "type": "string"
+                },
                 "cost": {
                     "type": "number"
                 },
                 "created_at": {
+                    "type": "string"
+                },
+                "dispense_confirmed": {
+                    "type": "boolean"
+                },
+                "dispensed_at": {
                     "type": "string"
                 },
                 "filled_at": {
@@ -6375,22 +7149,85 @@ const docTemplate = `{
                 "odometer_km": {
                     "type": "integer"
                 },
+                "public_token": {
+                    "description": "QR-based public verification.",
+                    "type": "string"
+                },
                 "station_name": {
                     "type": "string"
+                },
+                "unit_cost": {
+                    "type": "number"
                 },
                 "updated_at": {
                     "type": "string"
                 }
             }
         },
-        "dispatch_internal_modules_incidents_application.CreateIncidentRequest": {
+        "dispatch_internal_modules_fuel_domain.FuelLogPublicView": {
+            "type": "object",
+            "properties": {
+                "ambulance_code": {
+                    "type": "string"
+                },
+                "ambulance_make": {
+                    "type": "string"
+                },
+                "ambulance_model": {
+                    "type": "string"
+                },
+                "ambulance_plate": {
+                    "type": "string"
+                },
+                "crew": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dispatch_internal_modules_fuel_domain.CrewMember"
+                    }
+                },
+                "fuel_log": {
+                    "$ref": "#/definitions/dispatch_internal_modules_fuel_domain.FuelLog"
+                },
+                "logged_by_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "dispatch_internal_modules_incidents_application.CreateIncidentFeedbackRequest": {
             "type": "object",
             "required": [
-                "incident_type_id",
-                "source_channel",
+                "outcome_status",
                 "summary"
             ],
             "properties": {
+                "other_details": {
+                    "type": "string"
+                },
+                "outcome_status": {
+                    "type": "string",
+                    "enum": [
+                        "ADMITTED",
+                        "DISCHARGED",
+                        "STABILIZED",
+                        "REFERRED",
+                        "DECEASED",
+                        "OTHER"
+                    ]
+                },
+                "reported_by": {
+                    "type": "string"
+                },
+                "summary": {
+                    "type": "string"
+                }
+            }
+        },
+        "dispatch_internal_modules_incidents_application.CreateIncidentRequest": {
+            "type": "object",
+            "properties": {
+                "bp": {
+                    "type": "string"
+                },
                 "caller_name": {
                     "type": "string"
                 },
@@ -6404,9 +7241,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "district_id": {
-                    "type": "string"
-                },
-                "facility_id": {
                     "type": "string"
                 },
                 "incident_type_id": {
@@ -6427,6 +7261,9 @@ const docTemplate = `{
                 "patient_age_group": {
                     "type": "string"
                 },
+                "patient_details_diagnosis": {
+                    "type": "string"
+                },
                 "patient_name": {
                     "type": "string"
                 },
@@ -6436,10 +7273,29 @@ const docTemplate = `{
                 "patient_sex": {
                     "type": "string"
                 },
+                "pickup_location": {
+                    "type": "string",
+                    "enum": [
+                        "COMMUNITY",
+                        "FACILITY"
+                    ]
+                },
                 "priority_level_id": {
                     "type": "string"
                 },
+                "pulse": {
+                    "type": "string"
+                },
                 "questionnaire_code": {
+                    "type": "string"
+                },
+                "receiving_facility_id": {
+                    "type": "string"
+                },
+                "referring_facility_id": {
+                    "type": "string"
+                },
+                "respiratory_rate": {
                     "type": "string"
                 },
                 "severity_level_id": {
@@ -6448,10 +7304,16 @@ const docTemplate = `{
                 "source_channel": {
                     "type": "string"
                 },
+                "spo2": {
+                    "type": "string"
+                },
                 "subcounty": {
                     "type": "string"
                 },
                 "summary": {
+                    "type": "string"
+                },
+                "temperature": {
                     "type": "string"
                 },
                 "triage_notes": {
@@ -6486,6 +7348,9 @@ const docTemplate = `{
         "dispatch_internal_modules_incidents_application.UpdateIncidentRequest": {
             "type": "object",
             "properties": {
+                "bp": {
+                    "type": "string"
+                },
                 "caller_name": {
                     "type": "string"
                 },
@@ -6496,9 +7361,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "district_id": {
-                    "type": "string"
-                },
-                "facility_id": {
                     "type": "string"
                 },
                 "incident_type_id": {
@@ -6522,6 +7384,9 @@ const docTemplate = `{
                 "patient_age_group": {
                     "type": "string"
                 },
+                "patient_details_diagnosis": {
+                    "type": "string"
+                },
                 "patient_name": {
                     "type": "string"
                 },
@@ -6537,13 +7402,32 @@ const docTemplate = `{
                         "UNKNOWN"
                     ]
                 },
+                "pickup_location": {
+                    "type": "string",
+                    "enum": [
+                        "COMMUNITY",
+                        "FACILITY"
+                    ]
+                },
                 "priority_level_id": {
+                    "type": "string"
+                },
+                "pulse": {
                     "type": "string"
                 },
                 "questionnaire_code": {
                     "type": "string"
                 },
+                "receiving_facility_id": {
+                    "type": "string"
+                },
+                "referring_facility_id": {
+                    "type": "string"
+                },
                 "reported_at": {
+                    "type": "string"
+                },
+                "respiratory_rate": {
                     "type": "string"
                 },
                 "severity_level_id": {
@@ -6559,6 +7443,9 @@ const docTemplate = `{
                         "WEB_PORTAL",
                         "FACILITY_REFERRAL"
                     ]
+                },
+                "spo2": {
+                    "type": "string"
                 },
                 "status": {
                     "type": "string",
@@ -6581,6 +7468,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "summary": {
+                    "type": "string"
+                },
+                "temperature": {
                     "type": "string"
                 },
                 "triage_notes": {
@@ -6615,7 +7505,21 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "status": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                        "NEW",
+                        "PENDING_VERIFICATION",
+                        "VERIFIED",
+                        "AWAITING_ASSIGNMENT",
+                        "ASSIGNED",
+                        "ENROUTE",
+                        "AT_SCENE",
+                        "TRANSPORTING",
+                        "COMPLETED",
+                        "CANCELLED",
+                        "ESCALATED",
+                        "REJECTED"
+                    ]
                 }
             }
         },
@@ -6722,6 +7626,9 @@ const docTemplate = `{
                 "dispatch_assignment_id": {
                     "type": "string"
                 },
+                "ended_at": {
+                    "type": "string"
+                },
                 "incident_id": {
                     "type": "string"
                 },
@@ -6748,6 +7655,9 @@ const docTemplate = `{
                 },
                 "scene_lon": {
                     "type": "number"
+                },
+                "started_at": {
+                    "type": "string"
                 }
             }
         },

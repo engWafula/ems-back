@@ -21,6 +21,9 @@ type Repository interface {
 	ListIncidents(ctx context.Context, params ListIncidentsParams) ([]incidentdomain.Incident, int64, error)
 	UpdateIncident(ctx context.Context, id string, req UpdateIncidentRequest) (incidentdomain.Incident, error)
 	UpdateIncidentStatus(ctx context.Context, id, status string) (incidentdomain.Incident, error)
+	DeleteIncident(ctx context.Context, id string) error
+	CreateIncidentFeedback(ctx context.Context, fb incidentdomain.IncidentFeedback) (incidentdomain.IncidentFeedback, error)
+	ListIncidentFeedback(ctx context.Context, incidentID string) ([]incidentdomain.IncidentFeedback, error)
 	CreateIncidentUpdate(ctx context.Context, incidentID, updateType, oldValue, newValue, notes string, actorUserID *string) error
 	ListActiveUserIDsByRoleCodes(ctx context.Context, roleCodes []string) ([]string, error)
 	// GetLatestTriageForIncident returns the most recent triage session with

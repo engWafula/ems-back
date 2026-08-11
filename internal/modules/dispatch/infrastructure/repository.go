@@ -179,18 +179,23 @@ func (r *Repository) ListRecommendations(ctx context.Context, params dto.ListRec
 
 	q := fmt.Sprintf(`
 		SELECT
-			id,
-			incident_id,
-			ambulance_id,
-			driver_user_id,
-			score,
-			eta_minutes,
-			COALESCE(rule_summary, ''),
-			generated_at,
-			selected
-		FROM dispatch_recommendations
-		WHERE incident_id = $1
-		ORDER BY %s %s
+			dr.id,
+			dr.incident_id,
+			dr.ambulance_id,
+			dr.driver_user_id,
+			dr.score,
+			dr.eta_minutes,
+			COALESCE(dr.rule_summary, ''),
+			dr.generated_at,
+			dr.selected,
+			COALESCE(a.code, ''),
+			COALESCE(a.plate_number, ''),
+			COALESCE(TRIM(CONCAT_WS(' ', du.first_name, du.last_name, du.other_name)), '')
+		FROM dispatch_recommendations dr
+		LEFT JOIN ambulances a ON a.id = dr.ambulance_id
+		LEFT JOIN users du ON du.id = dr.driver_user_id
+		WHERE dr.incident_id = $1
+		ORDER BY dr.%s %s
 		LIMIT $2 OFFSET $3
 	`, sortBy, sortOrder)
 
@@ -213,6 +218,9 @@ func (r *Repository) ListRecommendations(ctx context.Context, params dto.ListRec
 			&out.RuleSummary,
 			&out.GeneratedAt,
 			&out.Selected,
+			&out.AmbulanceCode,
+			&out.AmbulancePlate,
+			&out.DriverName,
 		); err != nil {
 			return nil, 0, err
 		}

@@ -35,8 +35,10 @@ func (r *Repository) Create(ctx context.Context, u domain.User, passwordHash str
 				timezone, created_at, updated_at
 			)
 			VALUES (
-				$1,NULLIF($2,''),$3,$4,$5,$6,$7,
-				NULLIF($8,''),NULLIF($9,''),$10,'ACTIVE',true,$11,
+				$1,
+				COALESCE(NULLIF($2, ''), 'EMS-' || lpad(nextval('users_staff_no_seq')::text, 6, '0')),
+				$3,$4,$5,$6,$7,
+				NULLIF($8, ''),NULLIF($9, ''),$10,'ACTIVE',true,$11,
 				$12,$13,$13
 			)
 		`,
@@ -182,12 +184,12 @@ func (r *Repository) Update(ctx context.Context, id string, req dto.UpdateUserRe
 		pos++
 	}
 	if req.Phone != nil {
-		sets = append(sets, fmt.Sprintf("phone = NULLIF($%d,'')", pos))
+		sets = append(sets, fmt.Sprintf("phone = NULLIF($%d, '')", pos))
 		args = append(args, *req.Phone)
 		pos++
 	}
 	if req.Email != nil {
-		sets = append(sets, fmt.Sprintf("email = NULLIF($%d,'')", pos))
+		sets = append(sets, fmt.Sprintf("email = NULLIF($%d, '')", pos))
 		args = append(args, *req.Email)
 		pos++
 	}

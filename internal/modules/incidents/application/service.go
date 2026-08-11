@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"go.uber.org/zap"
 
 	incidentdomain "dispatch/internal/modules/incidents/domain"
@@ -317,10 +318,64 @@ func (s *Service) GetIncidentByID(ctx context.Context, id string) (incidentdomai
 	return s.repo.GetIncidentByID(ctx, id)
 }
 
+// CreateIncidentFeedback records a receiving-facility outcome report against an
+// incident. It returns ErrIncidentNotFound when the incident does not exist.
+func (s *Service) CreateIncidentFeedback(ctx context.Context, incidentID string, req CreateIncidentFeedbackRequest, actorUserID *string) (incidentdomain.IncidentFeedback, error) {
+	if _, err := s.repo.GetIncidentByID(ctx, incidentID); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return incidentdomain.IncidentFeedback{}, ErrIncidentNotFound
+		}
+		return incidentdomain.IncidentFeedback{}, err
+	}
+
+	fb := incidentdomain.IncidentFeedback{
+		IncidentID:      incidentID,
+		OutcomeStatus:   strings.ToUpper(strings.TrimSpace(req.OutcomeStatus)),
+		Summary:         strings.TrimSpace(req.Summary),
+		ReportedBy:      strings.TrimSpace(req.ReportedBy),
+		OtherDetails:    strings.TrimSpace(req.OtherDetails),
+		CreatedByUserID: actorUserID,
+	}
+	created, err := s.repo.CreateIncidentFeedback(ctx, fb)
+	if err != nil {
+		return incidentdomain.IncidentFeedback{}, err
+	}
+
+	note := "receiving facility feedback: " + created.OutcomeStatus
+	if created.Summary != "" {
+		note += " — " + created.Summary
+	}
+	_ = s.repo.CreateIncidentUpdate(ctx, incidentID, "COMMENT", "", created.OutcomeStatus, note, actorUserID)
+
+	_ = s.bus.Publish(ctx, "incident.feedback.created", events.Event{
+		ID:          uuid.NewString(),
+		Topic:       "incident.feedback.created",
+		AggregateID: incidentID,
+		Type:        "incident.feedback.created",
+		OccurredAt:  time.Now(),
+		Payload: map[string]any{
+			"incident_id":    incidentID,
+			"feedback_id":    created.ID,
+			"outcome_status": created.OutcomeStatus,
+			"reported_by":    created.ReportedBy,
+		},
+	})
+
+	return created, nil
+}
+
+// ListIncidentFeedback returns all feedback entries for an incident, newest first.
+func (s *Service) ListIncidentFeedback(ctx context.Context, incidentID string) ([]incidentdomain.IncidentFeedback, error) {
+	return s.repo.ListIncidentFeedback(ctx, incidentID)
+}
+
 // ErrIncidentNotAssigned is returned when a responder requests an incident
 // that is not assigned to them.
 var ErrIncidentNotAssigned = errors.New("incident not assigned to user")
 
+// ErrIncidentNotFound is returned when an incident does not exist (e.g. on
+// delete of an unknown id).
+var ErrIncidentNotFound = errors.New("incident not found")
 const unclassifiedIncidentTypeID = "00000000-0000-0000-0000-000000000001"
 
 // GetIncidentByIDForAssignee returns the incident only if the user is the
@@ -357,6 +412,38 @@ func (s *Service) UpdateIncidentStatus(ctx context.Context, id string, req Updat
 	}
 	_ = s.repo.CreateIncidentUpdate(ctx, id, "STATUS_CHANGE", "", updated.Status, req.Notes, actorUserID)
 	return updated, nil
+}
+
+// DeleteIncident hard-deletes an incident. It returns ErrIncidentNotFound when
+// the incident does not exist. Authorization (admin-only) is enforced by the
+// incidents.delete permission on the route.
+func (s *Service) DeleteIncident(ctx context.Context, id string, actorUserID *string) error {
+	existing, err := s.repo.GetIncidentByID(ctx, id)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return ErrIncidentNotFound
+		}
+		return err
+	}
+	if err := s.repo.DeleteIncident(ctx, id); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return ErrIncidentNotFound
+		}
+		return err
+	}
+	_ = s.bus.Publish(ctx, "incident.deleted", events.Event{
+		ID:          uuid.NewString(),
+		Topic:       "incident.deleted",
+		AggregateID: id,
+		Type:        "incident.deleted",
+		OccurredAt:  time.Now(),
+		Payload: map[string]any{
+			"incident_id":     id,
+			"incident_number": existing.IncidentNumber,
+			"deleted_by":      actorUserID,
+		},
+	})
+	return nil
 }
 
 func (s *Service) UpdateIncidentStatusForAssignee(ctx context.Context, id, userID string, req UpdateIncidentStatusRequest, actorUserID *string) (incidentdomain.Incident, error) {
@@ -426,6 +513,11 @@ func (s *Service) recordIncidentAttributeChanges(ctx context.Context, incidentID
 		{field: "patient_age_group", updateType: "COMMENT", oldValue: before.PatientAgeGroup, newValue: after.PatientAgeGroup},
 		{field: "patient_sex", updateType: "COMMENT", oldValue: before.PatientSex, newValue: after.PatientSex},
 		{field: "patient_details_diagnosis", updateType: "COMMENT", oldValue: before.PatientDetailsDiagnosis, newValue: after.PatientDetailsDiagnosis},
+		{field: "respiratory_rate", updateType: "COMMENT", oldValue: before.RespiratoryRate, newValue: after.RespiratoryRate},
+		{field: "spo2", updateType: "COMMENT", oldValue: before.Spo2, newValue: after.Spo2},
+		{field: "pulse", updateType: "COMMENT", oldValue: before.Pulse, newValue: after.Pulse},
+		{field: "bp", updateType: "COMMENT", oldValue: before.BP, newValue: after.BP},
+		{field: "temperature", updateType: "COMMENT", oldValue: before.Temperature, newValue: after.Temperature},
 		{field: "incident_type_id", updateType: "COMMENT", oldValue: before.IncidentTypeID, newValue: after.IncidentTypeID},
 		{field: "severity_level_id", updateType: "COMMENT", oldValue: stringValue(before.SeverityLevelID), newValue: stringValue(after.SeverityLevelID)},
 		{field: "priority_level_id", updateType: "COMMENT", oldValue: stringValue(before.PriorityLevelID), newValue: stringValue(after.PriorityLevelID)},

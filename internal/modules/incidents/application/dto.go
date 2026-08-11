@@ -56,6 +56,11 @@ type UpdateIncidentRequest struct {
 	PatientAgeGroup         *string               `json:"patient_age_group,omitempty"`
 	PatientSex              *string               `json:"patient_sex,omitempty" binding:"omitempty,oneof=MALE FEMALE OTHER UNKNOWN"`
 	PatientDetailsDiagnosis *string               `json:"patient_details_diagnosis,omitempty"`
+	RespiratoryRate         *string               `json:"respiratory_rate,omitempty"`
+	Spo2                    *string               `json:"spo2,omitempty"`
+	Pulse                   *string               `json:"pulse,omitempty"`
+	BP                      *string               `json:"bp,omitempty"`
+	Temperature             *string               `json:"temperature,omitempty"`
 	IncidentTypeID          *string               `json:"incident_type_id,omitempty" binding:"omitempty,uuid"`
 	SeverityLevelID         *string               `json:"severity_level_id,omitempty" binding:"omitempty,uuid"`
 	PriorityLevelID         *string               `json:"priority_level_id,omitempty" binding:"omitempty,uuid"`
@@ -78,6 +83,15 @@ type UpdateIncidentRequest struct {
 	TriageResponses         []TriageResponseInput `json:"triage_responses,omitempty"`
 	TriageNotes             string                `json:"triage_notes,omitempty"`
 	Notes                   string                `json:"notes,omitempty"`
+}
+
+// CreateIncidentFeedbackRequest is the receiving facility's outcome report for a
+// transferred/received patient.
+type CreateIncidentFeedbackRequest struct {
+	OutcomeStatus string `json:"outcome_status" binding:"required,oneof=ADMITTED DISCHARGED STABILIZED REFERRED DECEASED OTHER"`
+	Summary       string `json:"summary" binding:"required"`
+	ReportedBy    string `json:"reported_by"`
+	OtherDetails  string `json:"other_details"`
 }
 
 type ListIncidentsParams struct {

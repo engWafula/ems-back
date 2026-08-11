@@ -29,6 +29,7 @@ const fuelLogColumns = `
 	fl.ambulance_id,
 	fl.fuel_type,
 	fl.liters,
+	fl.unit_cost,
 	fl.cost,
 	fl.odometer_km,
 	fl.station_name,
@@ -55,7 +56,7 @@ func scanFuelLog(row rowScanner) (domain.FuelLog, error) {
 	var fuelType, stationName, filledBy, notes *string
 	var attendantName, attendantPhone, attendantNotes *string
 	var dispensedAt, confirmedAt *time.Time
-	var cost *float64
+	var unitCost, cost *float64
 	var odometerKM *int
 
 	if err := row.Scan(
@@ -63,6 +64,7 @@ func scanFuelLog(row rowScanner) (domain.FuelLog, error) {
 		&fl.AmbulanceID,
 		&fuelType,
 		&fl.Liters,
+		&unitCost,
 		&cost,
 		&odometerKM,
 		&stationName,
@@ -83,6 +85,7 @@ func scanFuelLog(row rowScanner) (domain.FuelLog, error) {
 	}
 
 	fl.FuelType = fuelType
+	fl.UnitCost = unitCost
 	fl.Cost = cost
 	fl.OdometerKM = odometerKM
 	fl.StationName = stationName
@@ -214,12 +217,12 @@ WHERE fl.id = $1
 func (r *Repository) Create(ctx context.Context, in domain.FuelLog) (domain.FuelLog, error) {
 	const q = `
 INSERT INTO fuel_logs (
-	id, ambulance_id, fuel_type, liters, cost, odometer_km, station_name,
+	id, ambulance_id, fuel_type, liters, unit_cost, cost, odometer_km, station_name,
 	filled_at, filled_by, notes, public_token, created_at, updated_at
 )
 VALUES (
-	gen_random_uuid(), $1,$2,$3,$4,$5,$6,
-	$7,$8,$9,$10, now(), now()
+	gen_random_uuid(), $1,$2,$3,$4,$5,$6,$7,
+	$8,$9,$10,$11, now(), now()
 )
 RETURNING id`
 
@@ -235,6 +238,7 @@ RETURNING id`
 		in.AmbulanceID,
 		in.FuelType,
 		in.Liters,
+		in.UnitCost,
 		in.Cost,
 		in.OdometerKM,
 		in.StationName,
@@ -261,6 +265,11 @@ func (r *Repository) Update(ctx context.Context, id string, req fuelapp.UpdateFu
 	if req.Liters != nil {
 		sets = append(sets, fmt.Sprintf("liters = $%d", pos))
 		args = append(args, *req.Liters)
+		pos++
+	}
+	if req.UnitCost != nil {
+		sets = append(sets, fmt.Sprintf("unit_cost = $%d", pos))
+		args = append(args, *req.UnitCost)
 		pos++
 	}
 	if req.Cost != nil {
@@ -326,7 +335,7 @@ func fullName(first, last *string) *string {
 func (r *Repository) GetPublicByToken(ctx context.Context, token string) (domain.FuelLogPublicView, error) {
 	const q = `
 SELECT
-	fl.id, fl.ambulance_id, fl.fuel_type, fl.liters, fl.cost, fl.odometer_km,
+	fl.id, fl.ambulance_id, fl.fuel_type, fl.liters, fl.unit_cost, fl.cost, fl.odometer_km,
 	fl.station_name, fl.filled_at, fl.filled_by, fl.notes, fl.public_token,
 	fl.dispensed_at, fl.dispense_confirmed, fl.attendant_name, fl.attendant_phone,
 	fl.attendant_notes, fl.confirmed_at, fl.created_at, fl.updated_at,
@@ -350,7 +359,7 @@ WHERE fl.public_token = $1`
 	var fuelType, stationName, filledBy, notes *string
 	var attendantName, attendantPhone, attendantNotes *string
 	var dispensedAt, confirmedAt *time.Time
-	var cost *float64
+	var unitCost, cost *float64
 	var odometerKM *int
 
 	var plate string
@@ -362,7 +371,7 @@ WHERE fl.public_token = $1`
 	var dcFirst, dcLast, dcPhone *string
 
 	if err := r.db.QueryRow(ctx, q, token).Scan(
-		&fl.ID, &fl.AmbulanceID, &fuelType, &fl.Liters, &cost, &odometerKM,
+		&fl.ID, &fl.AmbulanceID, &fuelType, &fl.Liters, &unitCost, &cost, &odometerKM,
 		&stationName, &fl.FilledAt, &filledBy, &notes, &fl.PublicToken,
 		&dispensedAt, &fl.DispenseConfirmed, &attendantName, &attendantPhone,
 		&attendantNotes, &confirmedAt, &fl.CreatedAt, &fl.UpdatedAt,
@@ -377,6 +386,7 @@ WHERE fl.public_token = $1`
 	}
 
 	fl.FuelType = fuelType
+	fl.UnitCost = unitCost
 	fl.Cost = cost
 	fl.OdometerKM = odometerKM
 	fl.StationName = stationName

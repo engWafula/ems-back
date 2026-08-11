@@ -13,6 +13,11 @@ type Incident struct {
 	PatientAgeGroup         string     `json:"patient_age_group"`
 	PatientSex              string     `json:"patient_sex"`
 	PatientDetailsDiagnosis string     `json:"patient_details_diagnosis"`
+	RespiratoryRate         string     `json:"respiratory_rate"`
+	Spo2                    string     `json:"spo2"`
+	Pulse                   string     `json:"pulse"`
+	BP                      string     `json:"bp"`
+	Temperature             string     `json:"temperature"`
 	CasualtyCount           *int       `json:"casualty_count,omitempty"`
 	IncidentTypeID          string     `json:"incident_type_id"`
 	IncidentTypeName        string     `json:"incident_type_name,omitempty"`
@@ -69,6 +74,20 @@ type TriageInfo struct {
 	TriagedAt            time.Time      `json:"triaged_at"`
 	TriagedByName        string         `json:"triaged_by_name,omitempty"`
 	Answers              []TriageAnswer `json:"answers"`
+}
+
+// IncidentFeedback is a receiving-facility outcome report recorded against an
+// incident (e.g. the patient was admitted, discharged, referred onward, etc.).
+type IncidentFeedback struct {
+	ID              string    `json:"id"`
+	IncidentID      string    `json:"incident_id"`
+	OutcomeStatus   string    `json:"outcome_status"`
+	Summary         string    `json:"summary"`
+	ReportedBy      string    `json:"reported_by,omitempty"`
+	OtherDetails    string    `json:"other_details,omitempty"`
+	CreatedByUserID *string   `json:"created_by_user_id,omitempty"`
+	CreatedAt       time.Time `json:"created_at"`
+	UpdatedAt       time.Time `json:"updated_at"`
 }
 
 type IncidentUpdate struct {

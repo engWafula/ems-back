@@ -237,6 +237,34 @@ func (h *Handler) UpdateStatus(c *gin.Context) {
 	httpx.OK(c, out)
 }
 
+// Delete godoc
+//
+//	@Summary		Delete incident
+//	@Description	Hard-deletes an incident. Restricted to administrators (incidents.delete permission).
+//	@Tags			Incidents
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			id	path	string	true	"Incident ID"
+//	@Success		204	"No Content"
+//	@Failure		404	{object}	map[string]interface{}
+//	@Failure		500	{object}	map[string]interface{}
+//	@Router			/incidents/{id} [delete]
+func (h *Handler) Delete(c *gin.Context) {
+	var actorUserID *string
+	if v := c.GetString("user_id"); v != "" {
+		actorUserID = &v
+	}
+	if err := h.service.DeleteIncident(c.Request.Context(), c.Param("id"), actorUserID); err != nil {
+		if errors.Is(err, incidentapp.ErrIncidentNotFound) {
+			httpx.Error(c, http.StatusNotFound, "incident not found")
+			return
+		}
+		httpx.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+	c.Status(http.StatusNoContent)
+}
+
 // GetTriage godoc
 //
 //	@Summary		Get incident triage information
@@ -295,4 +323,63 @@ func (h *Handler) GetByID(c *gin.Context) {
 		return
 	}
 	httpx.OK(c, out)
+}
+
+// CreateFeedback godoc
+//
+//	@Summary		Submit incident feedback
+//	@Description	Records receiving-facility outcome feedback for a transferred/received patient. Requires the incidents.feedback permission.
+//	@Tags			Incidents
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			id		path		string										true	"Incident ID"
+//	@Param			payload	body		incidentapp.CreateIncidentFeedbackRequest	true	"Feedback payload"
+//	@Success		201		{object}	map[string]interface{}
+//	@Failure		400		{object}	map[string]interface{}
+//	@Failure		404		{object}	map[string]interface{}
+//	@Failure		500		{object}	map[string]interface{}
+//	@Router			/incidents/{id}/feedback [post]
+func (h *Handler) CreateFeedback(c *gin.Context) {
+	id := c.Param("id")
+	var req incidentapp.CreateIncidentFeedbackRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		httpx.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+	var actorUserID *string
+	if v := c.GetString("user_id"); v != "" {
+		actorUserID = &v
+	}
+	out, err := h.service.CreateIncidentFeedback(c.Request.Context(), id, req, actorUserID)
+	if err != nil {
+		if errors.Is(err, incidentapp.ErrIncidentNotFound) {
+			httpx.Error(c, http.StatusNotFound, "incident not found")
+			return
+		}
+		httpx.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+	httpx.Created(c, out)
+}
+
+// ListFeedback godoc
+//
+//	@Summary		List incident feedback
+//	@Description	Returns receiving-facility feedback entries for an incident, newest first.
+//	@Tags			Incidents
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			id	path		string	true	"Incident ID"
+//	@Success		200	{object}	map[string]interface{}
+//	@Failure		500	{object}	map[string]interface{}
+//	@Router			/incidents/{id}/feedback [get]
+func (h *Handler) ListFeedback(c *gin.Context) {
+	id := c.Param("id")
+	items, err := h.service.ListIncidentFeedback(c.Request.Context(), id)
+	if err != nil {
+		httpx.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+	httpx.OK(c, items)
 }
