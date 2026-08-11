@@ -13,16 +13,23 @@ type Incident struct {
 	PatientAgeGroup         string     `json:"patient_age_group"`
 	PatientSex              string     `json:"patient_sex"`
 	PatientDetailsDiagnosis string     `json:"patient_details_diagnosis"`
+	CasualtyCount           *int       `json:"casualty_count,omitempty"`
 	IncidentTypeID          string     `json:"incident_type_id"`
+	IncidentTypeName        string     `json:"incident_type_name,omitempty"`
 	SeverityLevelID         *string    `json:"severity_level_id,omitempty"`
+	SeverityName            string     `json:"severity_name,omitempty"`
 	PriorityLevelID         *string    `json:"priority_level_id,omitempty"`
 	PriorityCode            string     `json:"priority_code,omitempty"`
+	PriorityName            string     `json:"priority_name,omitempty"`
 	Summary                 string     `json:"summary"`
 	Description             string     `json:"description"`
 	DistrictID              *string    `json:"district_id,omitempty"`
+	DistrictName            string     `json:"district_name,omitempty"`
 	PickupLocation          string     `json:"pickup_location"`
 	ReceivingFacilityID     *string    `json:"receiving_facility_id,omitempty"`
+	ReceivingFacilityName   string     `json:"receiving_facility_name,omitempty"`
 	ReferringFacilityID     *string    `json:"referring_facility_id,omitempty"`
+	ReferringFacilityName   string     `json:"referring_facility_name,omitempty"`
 	Village                 string     `json:"village"`
 	Parish                  string     `json:"parish"`
 	Subcounty               string     `json:"subcounty"`
@@ -39,6 +46,29 @@ type Incident struct {
 	ClosedAt                *time.Time `json:"closed_at,omitempty"`
 	CreatedAt               time.Time  `json:"created_at"`
 	UpdatedAt               time.Time  `json:"updated_at"`
+}
+
+// TriageAnswer is one question/answer pair from a completed triage session,
+// with the question text resolved for display.
+type TriageAnswer struct {
+	QuestionCode string `json:"question_code"`
+	QuestionText string `json:"question_text"`
+	ResponseType string `json:"response_type"`
+	Answer       string `json:"answer"`
+	ScoreAwarded int    `json:"score_awarded"`
+}
+
+// TriageInfo is the read model for an incident's latest triage session.
+type TriageInfo struct {
+	QuestionnaireName    string         `json:"questionnaire_name"`
+	TriageMode           string         `json:"triage_mode"`
+	TotalScore           int            `json:"total_score"`
+	AutoDispatchEligible bool           `json:"auto_dispatch_eligible"`
+	DerivedPriorityCode  string         `json:"derived_priority_code,omitempty"`
+	Notes                string         `json:"notes"`
+	TriagedAt            time.Time      `json:"triaged_at"`
+	TriagedByName        string         `json:"triaged_by_name,omitempty"`
+	Answers              []TriageAnswer `json:"answers"`
 }
 
 type IncidentUpdate struct {

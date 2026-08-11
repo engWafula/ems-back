@@ -35,8 +35,8 @@ func (r *Repository) Create(ctx context.Context, u domain.User, passwordHash str
 				timezone, created_at, updated_at
 			)
 			VALUES (
-				$1,$2,$3,$4,$5,$6,$7,
-				$8,$9,$10,'ACTIVE',true,$11,
+				$1,NULLIF($2,''),$3,$4,$5,$6,$7,
+				NULLIF($8,''),NULLIF($9,''),$10,'ACTIVE',true,$11,
 				$12,$13,$13
 			)
 		`,
@@ -107,6 +107,14 @@ func (r *Repository) List(ctx context.Context, params dto.ListUsersParams) ([]do
 			baseWhere = append(baseWhere, fmt.Sprintf("u.is_active::text = $%d", argPos))
 			args = append(args, strings.ToLower(value))
 			argPos++
+		case "role":
+			baseWhere = append(baseWhere, fmt.Sprintf(`EXISTS (
+				SELECT 1 FROM user_roles ur
+				JOIN roles ro ON ro.id = ur.role_id
+				WHERE ur.user_id = u.id AND ur.active = TRUE AND ro.code = $%d
+			)`, argPos))
+			args = append(args, strings.ToUpper(value))
+			argPos++
 		}
 	}
 
@@ -174,12 +182,12 @@ func (r *Repository) Update(ctx context.Context, id string, req dto.UpdateUserRe
 		pos++
 	}
 	if req.Phone != nil {
-		sets = append(sets, fmt.Sprintf("phone = $%d", pos))
+		sets = append(sets, fmt.Sprintf("phone = NULLIF($%d,'')", pos))
 		args = append(args, *req.Phone)
 		pos++
 	}
 	if req.Email != nil {
-		sets = append(sets, fmt.Sprintf("email = $%d", pos))
+		sets = append(sets, fmt.Sprintf("email = NULLIF($%d,'')", pos))
 		args = append(args, *req.Email)
 		pos++
 	}

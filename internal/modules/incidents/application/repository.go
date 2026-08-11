@@ -22,6 +22,10 @@ type Repository interface {
 	UpdateIncident(ctx context.Context, id string, req UpdateIncidentRequest) (incidentdomain.Incident, error)
 	UpdateIncidentStatus(ctx context.Context, id, status string) (incidentdomain.Incident, error)
 	CreateIncidentUpdate(ctx context.Context, incidentID, updateType, oldValue, newValue, notes string, actorUserID *string) error
+	ListActiveUserIDsByRoleCodes(ctx context.Context, roleCodes []string) ([]string, error)
+	// GetLatestTriageForIncident returns the most recent triage session with
+	// question/answer pairs; found=false when the incident has no triage yet.
+	GetLatestTriageForIncident(ctx context.Context, incidentID string) (incidentdomain.TriageInfo, bool, error)
 	NextIncidentNumber(ctx context.Context) (string, error)
 	ResolvePriorityLevelIDByCode(ctx context.Context, code string) (*string, error)
 	SetIncidentPriorityByCode(ctx context.Context, incidentID, code string) error
